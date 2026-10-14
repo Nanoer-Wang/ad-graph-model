@@ -1,0 +1,71 @@
+{
+  "graph": {
+    "type": "sheet",
+    "rows": 20,
+    "cols": 20,
+    "diagonal": true,
+    "weight_mode": "distance",
+    "normalize_weights": true
+  },
+  "parameters": {
+    "lambda0": 0.22,
+    "beta": 4.5,
+    "cX": 0.28,
+    "kn": 0.008,
+    "m": 2.0,
+    "ks": 1.5,
+    "q": 1.0,
+    "ke": 0.03,
+    "cY": 0.25,
+    "kf": 0.06,
+    "cZ": 0.114,
+    "DX": 0.03,
+    "DY": 0.06,
+    "KY": 0.12,
+    "hY": 4.0,
+    "etaY": 0.3,
+    "etaN": 0.15,
+    "deltaA": 0.01,
+    "kon": 2.0,
+    "koff": 0.3,
+    "cP": 0.02,
+    "uP": 0.0
+  },
+  "initial_conditions": {
+    "X": 0.03,
+    "Y": 0.0,
+    "Z": 0.0,
+    "P": 0.0,
+    "th": 0.0,
+    "a": 0.0
+  },
+  "seed_nodes": [
+    105
+  ],
+  "seed_values": {
+    "a": 0.15,
+    "Y": 0.05,
+    "Z": 0.08
+  },
+  "simulation": {
+    "t_end": 40.0,
+    "n_eval": 1201,
+    "method": "LSODA",
+    "rtol": 1e-07,
+    "atol": 1e-09
+  },
+  "plotting": {
+    "heatmap_times": [
+      5.0,
+      10.0,
+      15.0,
+      22.5,
+      30.0
+    ]
+  },
+  "sensitivity": {
+    "metric": "Y_peak",
+    "rel_step": 0.1
+  },
+  "interventions": []
+}
