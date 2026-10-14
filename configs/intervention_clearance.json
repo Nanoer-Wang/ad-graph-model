@@ -1,0 +1,70 @@
+{
+  "graph": {
+    "type": "grid",
+    "rows": 20,
+    "cols": 20,
+    "diagonal": true,
+    "weight_mode": "distance",
+    "normalize_weights": true
+  },
+  "parameters": {
+    "lambda0": 0.22,
+    "beta": 4.5,
+    "cX": 0.28,
+    "kn": 0.04,
+    "m": 2.0,
+    "kp": 0.06,
+    "cY": 0.18,
+    "kf": 0.05,
+    "cZ": 0.015,
+    "DX": 0.03,
+    "DY": 0.12,
+    "KY": 0.18,
+    "hY": 3.0,
+    "etaY": 0.35,
+    "etaN": 0.3,
+    "deltaA": 0.01
+  },
+  "initial_conditions": {
+    "X": 0.03,
+    "Y": 0.0,
+    "Z": 0.0,
+    "a": 0.0
+  },
+  "seed_nodes": [
+    105
+  ],
+  "seed_values": {
+    "a": 0.05,
+    "Y": 0.08
+  },
+  "simulation": {
+    "t_end": 30.0,
+    "n_eval": 801,
+    "method": "LSODA",
+    "rtol": 1e-06,
+    "atol": 1e-08
+  },
+  "plotting": {
+    "heatmap_times": [
+      5.0,
+      10.0,
+      15.0,
+      22.5,
+      30.0
+    ]
+  },
+  "sensitivity": {
+    "metric": "Y_peak",
+    "rel_step": 0.1
+  },
+  "interventions": [
+    {
+      "time": 8.0,
+      "set": {
+        "cY": 0.3,
+        "cZ": 0.05
+      }
+    }
+  ]
+}

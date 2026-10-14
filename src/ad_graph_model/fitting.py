@@ -10,6 +10,7 @@ confidence intervals (chi-square threshold, 1 d.f.).
 """
 from __future__ import annotations
 
+import gc
 import json
 from typing import Dict, List, Sequence, Tuple
 
@@ -93,7 +94,8 @@ def fit_parameters(cfg: dict, param_names: Sequence[str],
         for n, v in zip(names, np.exp(xl)):
             c["parameters"][n] = float(v)
         sim = _sim_columns(c, names, t_obs, cols)
-        return ((sim - Y_obs) / scales).ravel()
+        gc.collect()      # release the integrator workspace between
+        return ((sim - Y_obs) / scales).ravel()  # evaluations
 
     best = None
     for x0 in x0s:
@@ -172,7 +174,8 @@ def profile_likelihood_ci(cfg: dict, fit: dict,
         for n, v in zip(names, np.exp(xl)):
             c["parameters"][n] = float(v)
         sim = _sim_columns(c, names, t_obs, cols)
-        return ((sim - Y_obs) / scales).ravel()
+        gc.collect()      # release the integrator workspace between
+        return ((sim - Y_obs) / scales).ravel()  # evaluations
 
     def sse(xl):
         return float(np.sum(residuals(xl) ** 2))
