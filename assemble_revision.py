@@ -90,13 +90,13 @@ def main():
         if 'metadata' not in d:raise ValueError(f'Unverified reference {n}')
         m=d['metadata'].copy();pm=d.get('pubmed',{});ji=pm.get('journalInfo',{})
         if pm:
-            if not m.get('author'):
+            if not m.get('author') or not m['author'][0].get('family'):
                 m['author']=[dict(family=a.get('lastName',a.get('collectiveName','')),given=a.get('firstName','')) for a in pm.get('authorList',{}).get('author',[]) if a.get('lastName') or a.get('collectiveName')]
             m['volume']=ji.get('volume',m.get('volume',''))
             m['issue']=ji.get('issue',m.get('issue',''))
             m['page']=pm.get('pageInfo',m.get('page',''))
             m['published-print']={'date-parts':[[int(pm['pubYear'])]]}
-        authors=m.get('author',[])
+        authors=[a for a in m.get('author',[]) if a.get('family')]
         if not authors:raise ValueError(f'Missing authors for {n}')
         names=[plain(a.get('family',''))+' '+initials(a.get('given',''))+(' '+a['suffix'] if a.get('suffix') else '') for a in authors]
         author_text=', '.join(names[:6])+(', et al' if len(names)>6 else '')
