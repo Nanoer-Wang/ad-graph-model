@@ -24,7 +24,11 @@ EQUATIONS = {
     "eq_hill": r"$\mathcal{H}(Y;K_Y,h_Y)=\dfrac{Y^{h_Y}}{K_Y^{h_Y}+Y^{h_Y}}$",
     "eq_langmuir": r"$\theta^{*}=\dfrac{P}{K_D+P},\qquad K_D=\dfrac{k_{off}}{k_{on}}$",
     "eq_efficiency": r"$\eta_{\mathrm{agg}}(t)=1-\langle\theta\rangle(t)$",
-    "eq_cascade_number": r"$\mathcal{R}=\dfrac{k_n X_s^{m-1}+k_s Z_s^{q-1}}{c_Y+k_f}$",
+    "eq_cascade_number": (
+        r"$\mathcal{R}=\dfrac{X_s\left[k_sk_f+k_e(c_Y+k_f)\right]}{(c_Y+k_f)c_Z}$"
+        r"=\dfrac{k_sX_sk_f}{(c_Y+k_f)c_Z}+\dfrac{k_eX_s}{c_Z}$"
+    ),
+    "eq_theta_c_from_R": r"$\theta_c=1-\dfrac{1}{\mathcal{R}}$",
     "eq_critical": r"$(c_Y+k_f)\left[c_Z-k_eX_s(1-\theta)\right]=k_sX_sk_f(1-\theta)$",
     "eq_theta_c": r"$\theta_c=1-\dfrac{(c_Y+k_f)c_Z}{X_s\left[k_sk_f+k_e(c_Y+k_f)\right]}$",
     "eq_graph_laplacian": r"$L_{vu}=W_{vu}\ (u\neq v),\quad L_{vv}=-1,\qquad \sum_{u}W_{vu}=1$",

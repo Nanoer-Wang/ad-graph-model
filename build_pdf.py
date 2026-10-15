@@ -73,13 +73,19 @@ def styles() -> dict[str, ParagraphStyle]:
                                      alignment=TA_CENTER, spaceBefore=10)
     s["h2"] = ParagraphStyle("h2", fontName=BODY + "-Bold", fontSize=12.5,
                              leading=16, alignment=TA_LEFT,
-                             spaceBefore=14, spaceAfter=6)
+                             spaceBefore=16, spaceAfter=7)
     s["h3"] = ParagraphStyle("h3", fontName=BODY + "-Bold", fontSize=11,
                              leading=14, alignment=TA_LEFT,
-                             spaceBefore=10, spaceAfter=4)
+                             spaceBefore=12, spaceAfter=5)
     s["body"] = ParagraphStyle("body", fontName=BODY, fontSize=10.5,
-                               leading=15.5, alignment=TA_JUSTIFY,
-                               spaceAfter=6)
+                               leading=15.2, alignment=TA_JUSTIFY,
+                               spaceAfter=0, firstLineIndent=0)
+    # Journal convention: consecutive body paragraphs are separated by a
+    # first-line indent rather than by vertical space.  The first paragraph
+    # after a heading, figure, table or equation is set flush left (style
+    # "body"); later ones use "body-indent".
+    s["body-indent"] = ParagraphStyle("body-indent", parent=s["body"],
+                                      firstLineIndent=1.1 * 10.5)
     s["abstract"] = ParagraphStyle("abstract", fontName=BODY, fontSize=10,
                                    leading=14.5, alignment=TA_JUSTIFY,
                                    leftIndent=1.1 * cm, rightIndent=1.1 * cm,
@@ -233,7 +239,7 @@ def build_flow(title, cover, blocks, st):
 
     in_abstract = False
     pending_img: str | None = None
-    for kind, payload in blocks:
+    for i, (kind, payload) in enumerate(blocks):
         if kind == "h2":
             if in_abstract:
                 in_abstract = False
@@ -299,7 +305,12 @@ def build_flow(title, cover, blocks, st):
 
         # "p" blocks still carry raw markdown emphasis; every other kind was
         # already run through inline() by the parser
-        style = st["abstract"] if in_abstract else st["body"]
+        prev_kind = blocks[i - 1][0] if i > 0 else None
+        if not in_abstract and prev_kind not in ("h2", "h3", "figcap",
+                                                 "table", "eq", "figimg"):
+            style = st["body-indent"]
+        else:
+            style = st["abstract"] if in_abstract else st["body"]
         flow.append(Paragraph(rl(inline(payload)), style))
 
     return flow

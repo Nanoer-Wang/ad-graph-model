@@ -268,9 +268,15 @@ CSS = """
     text-align: left; color: var(--color-text);
   }
   p {
-    margin-bottom: var(--spacing-paragraph); text-align: left;
+    margin-bottom: 0; text-align: justify;
     font-family: var(--ff-body); font-size: var(--fs-body);
-    color: var(--color-text);
+    color: var(--color-text); text-indent: 2em; line-height: 1.45;
+  }
+  /* journal convention: the first paragraph after a heading, figure,
+     equation or table is set flush left (no first-line indent) */
+  h2 + p, h3 + p, p.caption + p, p.figure-img + p, p.equation + p,
+  .three-line-table + p, .abstract-text p, .abstract-keywords p {
+    text-indent: 0; margin-bottom: var(--spacing-paragraph);
   }
 
   .cover-line {
@@ -314,9 +320,9 @@ CSS = """
   p.equation { text-align: center; margin: var(--spacing-block) 0; }
   p.equation img { max-width: 100%; }
   p.caption {
-    font-size: var(--fs-small); text-align: left;
+    font-size: var(--fs-small); text-align: justify;
     margin-top: 0.4em; margin-bottom: var(--spacing-section);
-    color: var(--color-text);
+    color: var(--color-text); text-indent: 0;
   }
 
   /* three-line table */

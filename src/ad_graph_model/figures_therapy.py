@@ -113,21 +113,22 @@ def fig5_dose(data_dir: Path, outdir: Path) -> list:
     axb2.spines["right"].set_visible(True)
 
     # ---- C: dose-response of toxicity metrics
-    for col_y, lab, mk in [("Y_peak", "$Y_{peak}$", "o"),
-                           ("AUC_Y", "AUC($Y$)", "s")]:
+    for col_y, lab, mk, key in [("Y_peak", "$Y_{peak}$", "o", "Y"),
+                                ("AUC_Y", "AUC($Y$)", "s", "Z")]:
         fit = _fit_ec50(dose["uP"].to_numpy(), dose[col_y].to_numpy())
         if fit is not None:
             xs = np.logspace(np.log10(dose["uP"].min()),
                              np.log10(dose["uP"].max()), 200)
-            axC.plot(xs, _hill4(xs, *fit), color=C[col_y == "Y_peak" and "Y" or "Z"],
+            axC.plot(xs, _hill4(xs, *fit), color=C[key],
                      lw=1.4, alpha=0.6)
             axC.scatter([fit[2]], [_hill4(fit[2], *fit)], marker="v", s=60,
-                        color=C["dark"], zorder=4)
+                        color=C[key], edgecolor="white", lw=0.6, zorder=4)
             axC.annotate(f"EC$_{{50}}$ = {fit[2]:.4g}",
                          (fit[2], _hill4(fit[2], *fit)),
-                         textcoords="offset points", xytext=(8, 10), fontsize=8.4)
+                         textcoords="offset points", xytext=(8, 10), fontsize=8.4,
+                         color=C[key])
         axC.scatter(dose["uP"], dose[col_y], marker=mk, s=42,
-                    color=C["Y" if col_y == "Y_peak" else "Z"],
+                    color=C[key],
                     label=lab, zorder=3, edgecolor="white", lw=0.5)
     axC.set_xscale("log")
     axC.set_xlabel("Passivation dose $u_P$ (infusion rate)")
@@ -173,11 +174,16 @@ def fig5_dose(data_dir: Path, outdir: Path) -> list:
     axD.plot(th, a200, "o", ms=4.5, color=C["a"], zorder=4,
              markeredgecolor="white", markeredgewidth=0.5)
 
-    # saddle-node fold of the full system (Fig. 4)
-    axD.axvline(0.928, color=C["purple"], ls=":", lw=1.6, zorder=2)
-    axD.annotate("full-system fold\n$\\theta_{SN}$ = 0.93", (0.928, 0.06),
-                 textcoords="offset points", xytext=(6, 0), fontsize=8,
-                 color=C["purple"])
+    # saddle-node fold of the full system (Fig. 4), read from the continuation
+    crit = pd.read_csv(data_dir / "critical_curve.csv")
+    num = crit.dropna(subset=["theta_numeric"])
+    th_sn = float(num["theta_numeric"].iloc[0]) if len(num) else float("nan")
+    if np.isfinite(th_sn):
+        axD.axvline(th_sn, color=C["purple"], ls=":", lw=1.6, zorder=2)
+        axD.annotate(f"full-system fold\n$\\theta_{{SN}}$ = {th_sn:.2f}",
+                     (th_sn, 0.06),
+                     textcoords="offset points", xytext=(6, 0), fontsize=8,
+                     color=C["purple"])
 
     # the unravelling of an intermediate dose
     i83 = int(np.argmin(np.abs(th - 0.827)))
@@ -189,10 +195,23 @@ def fig5_dose(data_dir: Path, outdir: Path) -> list:
                  textcoords="offset points", xytext=(-112, -4), fontsize=8.2,
                  color=C["dark"])
 
-    # durable midpoint
-    axD.scatter([0.887], [pch(0.887)], marker="D", s=42, color=C["dark"],
-                zorder=5)
-    axD.annotate("durable midpoint\n$\\theta^*$ $\\approx$ 0.89", (0.887, pch(0.887)),
+    # durable midpoint: the theta* at which the monotone durable curve reaches
+    # the midpoint of its own range (root of pch(th) - mid, by bisection).
+    lo_t, hi_t = float(th[order][0]), float(th[order][-1])
+    y_lo, y_hi = float(pch(hi_t)), float(pch(lo_t))
+    mid = 0.5 * (y_lo + y_hi)
+    f = lambda x: float(pch(x)) - mid          # noqa: E731
+    a_, b_ = lo_t, hi_t
+    for _ in range(80):
+        m_ = 0.5 * (a_ + b_)
+        if f(a_) * f(m_) <= 0:
+            b_ = m_
+        else:
+            a_ = m_
+    th_mid = 0.5 * (a_ + b_)
+    axD.scatter([th_mid], [mid], marker="D", s=42, color=C["dark"], zorder=5)
+    axD.annotate(f"durable midpoint\n$\\theta^*$ $\\approx$ {th_mid:.2f}",
+                 (th_mid, mid),
                  textcoords="offset points", xytext=(-18, 16), fontsize=8.2)
 
     axD.set_xlabel("Sustained interface occupancy $\\theta^*$")
@@ -239,18 +258,25 @@ def fig6_therapy(data_dir: Path, outdir: Path) -> list:
     axA.axvline(40, color=C["gray"], ls=":", lw=1.4)
     axA.annotate("$t$ = 40\nsnapshot", (40, 0.965), fontsize=8,
                  color=C["gray"], ha="center")
-    axA.axhline(0.66, color=C["gray"], ls="--", lw=1.0, alpha=0.7)
-    axA.annotate("single-agent durable plateau $\\approx$ 0.66",
-                 (152, 0.71), fontsize=8, color=C["gray"], ha="center")
-    axA.annotate("", xy=(118, 0.66), xytext=(118, 0.11),
+    # durable single-agent plateau, read from the onset scan
+    plat = float(win.loc[win["strategy"] == "Passivation",
+                         "mean_a_end"].mean())
+    axA.axhline(plat, color=C["gray"], ls="--", lw=1.0, alpha=0.7)
+    axA.annotate(f"single-agent durable plateau $\\approx$ {plat:.2f}",
+                 (0.985, plat + 0.045), xycoords=("axes fraction", "data"),
+                 fontsize=8, color=C["gray"], ha="right")
+    traj0 = pd.read_csv(data_dir / "window_trajectory_long_t0.csv")
+    a40_pass = float(np.interp(40.0, traj0["time"], traj0["mean_a"]))
+    axA.annotate("", xy=(46, plat), xytext=(46, a40_pass),
                  arrowprops=dict(arrowstyle="<->", lw=1.3, color=C["gray"]))
-    axA.annotate("apparent protection\nunravels", (122, 0.34), fontsize=8,
-                 color=C["gray"], ha="left")
+    axA.annotate("apparent protection\nunravels", (52, 0.5 * (a40_pass + plat)),
+                 fontsize=8, color=C["gray"], ha="left")
     axA.set_xlabel("Time")
     axA.set_ylabel("Mean damage $a$")
     axA.set_xlim(0, 200)
-    axA.set_ylim(0, 1.02)
-    axA.legend(fontsize=8.0, loc="center right", ncol=1,
+    axA.set_ylim(0, 1.05)
+    axA.legend(fontsize=8.0, loc="upper center",
+               bbox_to_anchor=(0.5, -0.17), ncol=3,
                title="passivation onset", title_fontsize=8.0)
     axA.set_title("Onset delay on the durable horizon ($t$ = 200)",
                   fontsize=10.5)
@@ -274,13 +300,18 @@ def fig6_therapy(data_dir: Path, outdir: Path) -> list:
     axB.annotate(f"untreated ({base_dmg:.2f})", (1.0, base_dmg + 0.03),
                  fontsize=8, color=C["gray"])
     comb = win[win["strategy"] == "Combination"].sort_values("onset")
-    ok = comb[comb["mean_a_end"] <= 0.16]
-    axB.axvspan(ok["onset"].min(), ok["onset"].max(), color=C["Z"],
-                alpha=0.10, lw=0)
-    axB.annotate("combination durably arrests\nup to onset $t$ $\\approx$ 22",
-                 (11, 0.30), fontsize=8.2, color="#00756A", ha="center")
+    ARREST_THRESHOLD = 0.14          # durable-arrest criterion used in Sec. 4.5
+    ok = comb[comb["mean_a_end"] <= ARREST_THRESHOLD]
+    if len(ok):
+        t_last = float(ok["onset"].max())
+        axB.axvspan(ok["onset"].min(), t_last, color=C["Z"],
+                    alpha=0.10, lw=0)
+        axB.annotate(f"combination durably arrests\n"
+                     f"($\\langle a\\rangle_{{end}} \\leq {ARREST_THRESHOLD:.2f}$) "
+                     f"up to onset $t$ $\\approx$ {t_last:.0f}",
+                     (11, 0.30), fontsize=8.2, color="#00756A", ha="center")
     axB.annotate("single agents flatten:\ncritical slowing only",
-                 (23, 0.77), fontsize=8.2, color=C["gray"], ha="center")
+                 (23, 0.85), fontsize=8.2, color=C["gray"], ha="center")
     axB.set_xlabel("Intervention onset time")
     axB.set_ylabel("Terminal mean damage $\\langle a\\rangle_{end}$")
     axB.set_ylim(-0.03, 1.05)

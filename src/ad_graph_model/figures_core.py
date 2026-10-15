@@ -9,10 +9,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 
+import json
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch
+from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Patch
 from matplotlib.lines import Line2D
 
 from .figstyle import (C, CMAP_DAMAGE, CMAP_TH, CMAP_Y, CMAP_Z, STRATEGY_COLORS,
@@ -128,9 +130,9 @@ def fig1_schematic(outdir: Path, baseline_csv: Path,
     ang = np.linspace(0, 2 * np.pi, n, endpoint=False)
     pos = np.stack([np.cos(ang), np.sin(ang)], axis=1)
     axB.set_xlim(-1.55, 1.75)
-    axB.set_ylim(-1.5, 1.62)
+    axB.set_ylim(-1.72, 1.72)
     axB.axis("off")
-    axB.text(-1.5, 1.58, "B", fontsize=17, fontweight="bold", va="top")
+    axB.text(-1.5, 1.68, "B", fontsize=17, fontweight="bold", va="top")
     axB.set_title("Brain-network propagation", fontsize=11, pad=2)
     edges = [(i, (i + 1) % n) for i in range(n)] + [(0, 7), (3, 10), (5, 12)]
     for i, j in edges:
@@ -146,13 +148,14 @@ def fig1_schematic(outdir: Path, baseline_csv: Path,
     # passivated node shield
     axB.add_patch(Circle(pos[3], 0.34, facecolor="none", edgecolor=C["P"],
                          lw=2.4, zorder=4))
-    axB.annotate("passivated\ninterface", xy=pos[3], xytext=(0.62, -1.32),
+    axB.annotate("passivated\ninterface", xy=pos[3], xytext=(0.78, -1.18),
                  fontsize=8.6, color=C["P"], ha="center",
                  arrowprops=dict(arrowstyle="->", color=C["P"], lw=1.2))
-    axB.annotate("damage front", xy=pos[6], xytext=(-1.42, 1.28),
+    axB.annotate("damage front", xy=pos[6], xytext=(-1.45, 1.02),
                  fontsize=8.6, color=C["a"], ha="center",
                  arrowprops=dict(arrowstyle="->", color=C["a"], lw=1.2))
-    axB.text(0, -1.52, "node colour = neuronal damage $a$;  size = oligomer burden $Y$",
+    axB.text(0, -1.52, "node colour and size = neuronal damage $a$;  "
+             "orange ring = passivated interface",
              fontsize=8.4, ha="center", color=C["gray"])
 
     # ---------------- panel C: intervention timeline ---------------------
@@ -208,7 +211,9 @@ def fig2_baseline(data_dir: Path, outdir: Path) -> list:
     axA2.grid(False)
     h1, l1 = axA.get_legend_handles_labels()
     h2, l2 = axA2.get_legend_handles_labels()
-    axA.legend(h1 + h2, l1 + l2, loc="center right", fontsize=8.6)
+    # legends are placed below the axes so that they never overlap the curves
+    axA.legend(h1 + h2, l1 + l2, loc="upper center",
+               bbox_to_anchor=(0.5, -0.20), ncol=4, fontsize=8.6)
     axA.set_title("Seed-region (entorhinal-like) dynamics", fontsize=10.5)
     panel_label(axA, "A")
 
@@ -222,13 +227,18 @@ def fig2_baseline(data_dir: Path, outdir: Path) -> list:
         axB.axvspan(x0, x1, color="#F2F2F2" if lab == "silent" else
                     ("#FBEEE6" if lab == "amplification" else "#F9E3E1"),
                     zorder=0)
-        axB.text((x0 + x1) / 2, 1.02, lab, ha="center", fontsize=8.4,
-                 color=C["gray"])
+    # phase labels sit in a dedicated strip above the plotting area
+    for x0, x1, lab in [(0, 14, "silent"), (14, 24, "amplification"),
+                        (24, 40, "clinical")]:
+        axB.text((x0 + x1) / 2, 1.16, lab, ha="center", va="bottom",
+                 fontsize=8.4, color=C["gray"])
     axB.set_xlabel("Time")
     axB.set_ylabel("Network mean")
     axB.set_xlim(0, 40)
-    axB.set_ylim(0, 1.12)
-    axB.legend(loc="center left", fontsize=8.6, ncol=2)
+    axB.set_ylim(0, 1.28)
+    axB.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+    axB.legend(loc="upper center", bbox_to_anchor=(0.5, -0.20), ncol=4,
+               fontsize=8.6)
     axB.set_title("Network-averaged cascade", fontsize=10.5)
     panel_label(axB, "B")
 
@@ -299,9 +309,9 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     top = np.argsort(w_flat)[::-1][:120]
     edge_list = [(iu[0][k], iu[1][k]) for k in top]
 
-    fig = plt.figure(figsize=(13.4, 9.6))
+    fig = plt.figure(figsize=(13.4, 9.8))
     gs = fig.add_gridspec(3, 4, height_ratios=[1.0, 1.05, 0.9],
-                          hspace=0.42, wspace=0.30)
+                          hspace=0.52, wspace=0.34)
     snap_axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
     axE = fig.add_subplot(gs[1, :2])
     axF = fig.add_subplot(gs[1, 2])
@@ -333,11 +343,16 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     im = axE.imshow(mat, aspect="auto", cmap=dmg_cmap, vmin=0, vmax=1,
                     extent=[t[0], t[-1], len(order) - 0.5, -0.5],
                     interpolation="nearest")
+    # 68 region names cannot be legibly placed on a single heat-map axis, so
+    # every fourth region is labelled and the rest are ticked.
     axE.set_yticks(np.arange(len(order)))
-    axE.set_yticklabels(order, fontsize=5.6)
+    axE.set_yticklabels([r if (i % 4 == 0) else "" for i, r in enumerate(order)],
+                        fontsize=7.0)
+    axE.tick_params(axis="y", length=2.5, pad=1.5)
     for s in ("top", "right"):
         axE.spines[s].set_visible(False)
     axE.set_xlabel("Time")
+    axE.set_ylabel("region (ordered by onset; every 4th labelled)", fontsize=8.5)
     axE.set_title("Regional damage propagation (ordered by onset)", fontsize=10)
     cb = fig.colorbar(im, ax=axE, fraction=0.03, pad=0.01)
     cb.set_label("damage $a$", fontsize=8)
@@ -360,15 +375,53 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     axF.set_title("Topology robustness", fontsize=10)
     panel_label(axF, "F")
 
-    # ---- G: hub strength vs damage
-    axG.scatter(strength["strength"], strength["a_end"], s=26, color=C["purple"],
-                alpha=0.85, edgecolor="white", lw=0.5)
-    r = float(np.corrcoef(np.log(strength["strength"]),
-                          strength["a_end"])[0, 1])
+    # ---- G: hub test on the un-normalised connectome
+    # The row-normalised adjacency has unit row sums, so node strength read
+    # from it is identically 1 for every region.  Hubness is therefore taken
+    # from the raw connectome (weighted strength before row normalisation).
+    try:
+        hub = pd.read_csv(data_dir / "spatial_hub_metrics.csv")
+        stats_json = json.loads(
+            (data_dir / "network_distance_stats.json").read_text())
+    except (FileNotFoundError, ValueError):
+        hub = pd.read_csv(data_dir / "spatial_strength_damage.csv")
+        hub = hub.rename(columns={"strength": "strength_raw"})
+        stats_json = None
+
+    axG.scatter(hub["strength_raw"], hub["a_end"], s=30, color=C["gray"],
+                alpha=0.85, edgecolor="white", lw=0.5, zorder=3,
+                label="terminal damage")
     axG.set_xscale("log")
-    axG.set_xlabel("Node strength (log)")
-    axG.set_ylabel("Damage at $t=40$")
-    axG.set_title(f"Hub test: no hub effect (r = {r:.2f})", fontsize=10)
+    axG.set_xlabel("Node strength (un-normalised, log)")
+    axG.set_ylabel("Damage at $t=40$", color=C["gray"])
+    axG.tick_params(axis="y", colors=C["gray"])
+    axG.set_ylim(0.90, 1.0)
+
+    axG2 = axG.twinx()
+    axG2.scatter(hub["strength_raw"], hub["onset"], s=30, color=C["Z"],
+                 alpha=0.9, marker="^", edgecolor="white", lw=0.5, zorder=4,
+                 label="onset time")
+    axG2.set_ylabel("Onset time ($a=0.3$)", color=C["Z"])
+    axG2.tick_params(axis="y", colors=C["Z"])
+    axG2.grid(False)
+    axG2.spines["right"].set_visible(True)
+
+    if stats_json is not None:
+        rd = stats_json["strength_raw_vs_a_end"]
+        ro = stats_json["strength_raw_vs_onset"]
+        sub = (f"endpoint $r$={rd['pearson_r']:+.2f}, $p$={rd['pearson_p']:.2f}\n"
+               f"onset $r$={ro['pearson_r']:+.2f}, $p$={ro['pearson_p']:.3f}")
+    else:  # pragma: no cover - legacy fallback
+        r = float(np.corrcoef(hub["strength_raw"], hub["a_end"])[0, 1])
+        sub = f"endpoint $r$={r:+.2f}"
+    axG.set_title("Hub test: no hub vulnerability", fontsize=10)
+    axG.text(0.03, 0.03, sub, transform=axG.transAxes, fontsize=7.6,
+             va="bottom", ha="left", color=C["dark"],
+             bbox=dict(fc="white", ec="#CCCCCC", lw=0.6, alpha=0.9, pad=2.5))
+    h1, l1 = axG.get_legend_handles_labels()
+    h2, l2 = axG2.get_legend_handles_labels()
+    axG.legend(h1 + h2, l1 + l2, loc="upper center",
+               bbox_to_anchor=(0.5, -0.24), ncol=2, fontsize=7.6)
     panel_label(axG, "G")
 
     # ---- H: onset ranking
@@ -418,21 +471,29 @@ def fig4_bifurcation(data_dir: Path, outdir: Path) -> list:
                 bif.loc[bif["stable"], "a"], s=14, color=C["dark"], zorder=3)
     th_c = float(crit["theta_analytic"].iloc[0])
     axA.axvline(th_c, color=C["P"], lw=1.6, ls=":")
-    axA.text(th_c - 0.018, 0.55, f"subsystem $\\theta_c$ = {th_c:.2f}",
-             rotation=90, fontsize=8.6, color=C["P"], va="center")
     # numeric saddle-node fold at the reference clearance (full system)
     num_ref = crit["theta_numeric"].dropna()
-    if len(num_ref):
-        th_on = float(num_ref.iloc[0])
+    th_on = float(num_ref.iloc[0]) if len(num_ref) else float("nan")
+    if np.isfinite(th_on):
         axA.axvline(th_on, color=C["a"], lw=1.6, ls="--")
-        axA.text(th_on + 0.015, 0.55,
-                 f"full-system fold $\\approx$ {th_on:.2f}",
-                 rotation=90, fontsize=8.6, color=C["a"], va="center")
+        axA.annotate("", xy=(th_c, 0.955), xytext=(th_on, 0.955),
+                     arrowprops=dict(arrowstyle="<->", color=C["dark"],
+                                     lw=1.2))
+        axA.text(0.5 * (th_c + th_on), 0.975,
+                 f"feedback penalty {th_on - th_c:.2f}", fontsize=8.2,
+                 color=C["dark"], ha="center", va="bottom")
+    # thresholds are reported in the legend rather than as rotated text, so
+    # that they can never collide with the branches when the data change.
+    hA, lA = axA.get_legend_handles_labels()
+    hA += [Line2D([], [], color=C["P"], ls=":", lw=1.6),
+           Line2D([], [], color=C["a"], ls="--", lw=1.6)]
+    lA += [f"subsystem $\\theta_c$ = {th_c:.2f}",
+           f"full-system fold = {th_on:.2f}"]
     axA.set_xlabel("Passivated interface fraction $\\theta$")
     axA.set_ylabel("Steady-state damage $a^*$")
     axA.set_xlim(0, 1.0)
-    axA.set_ylim(0, 1.0)
-    axA.legend(fontsize=8.6, loc="upper right")
+    axA.set_ylim(0, 1.08)
+    axA.legend(hA, lA, fontsize=8.2, loc="upper right")
     axA.set_title("Steady states vs interface passivation", fontsize=10.5)
     panel_label(axA, "A")
 
@@ -453,26 +514,27 @@ def fig4_bifurcation(data_dir: Path, outdir: Path) -> list:
         axB.fill_between(grid, num_i, 1.0, color="#EAF3EA", zorder=0)
         # feedback gap: subsystem arrested but full system still runaway
         axB.fill_between(grid, ana_i, num_i, color="#FDF0E3", zorder=0)
-        axB.text(0.40, 0.965, "cascade arrested (full system)", fontsize=9,
-                 color="#2E7D32", ha="center", va="top")
-        axB.text(0.40, 0.60, "feedback gap:\nsubsystem arrested,\nfull system runaway",
-                 fontsize=8, color="#B26A00", ha="center", va="center")
-        axB.text(0.40, 0.30, "runaway", fontsize=10, color=C["a"],
-                 ha="center")
+        hB, lB = axB.get_legend_handles_labels()
+        hB += [Patch(facecolor="#EAF3EA", edgecolor="#CCCCCC", lw=0.5),
+               Patch(facecolor="#FDF0E3", edgecolor="#CCCCCC", lw=0.5),
+               Patch(facecolor="#FBE9E7", edgecolor="#CCCCCC", lw=0.5)]
+        lB += ["cascade arrested (full system)",
+               "feedback gap: subsystem only",
+               "runaway (both)"]
+        axB.legend(hB, lB, fontsize=8.0, loc="lower left")
     else:
         axB.scatter(num["cY"], num["theta_numeric"], s=46, color=C["a"],
                     zorder=3, label="numeric saddle-node")
         axB.fill_between(crit["cY"], crit["theta_analytic"], 1.0,
                          color="#EAF3EA", zorder=0)
-        axB.text(0.42, 0.86, "cascade arrested", fontsize=10,
-                 color="#2E7D32", ha="center")
-        axB.text(0.42, 0.30, "runaway", fontsize=10, color=C["a"],
-                 ha="center")
+        hB, lB = axB.get_legend_handles_labels()
+        hB += [Patch(facecolor="#EAF3EA", edgecolor="#CCCCCC", lw=0.5)]
+        lB += ["cascade arrested (full system)"]
+        axB.legend(hB, lB, fontsize=8.0, loc="lower left")
     axB.set_xlabel("Oligomer clearance rate $c_Y$")
     axB.set_ylabel("Critical passivation $\\theta_c$")
     axB.set_xlim(0.25, 0.55)
     axB.set_ylim(0, 1.0)
-    axB.legend(fontsize=8.2, loc="lower left")
     axB.set_title("Therapeutic boundary: clearance vs passivation",
                   fontsize=10.5)
     panel_label(axB, "B")

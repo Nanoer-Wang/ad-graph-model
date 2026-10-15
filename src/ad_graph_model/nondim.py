@@ -38,8 +38,18 @@ def dimensionless_groups(p: Dict[str, float]) -> Dict[str, float]:
     eN = p["etaN"] / cX                                 # nonlocal damage
     delta = p["deltaA"] / cX                            # damage repair
     KD = p["koff"] / p["kon"]                           # passivator K_D (in P units)
-    # cascade number: oligomer production per unit removal at reference state
-    R = (p["kn"] * X_s ** (p["m"] - 1) + p["ks"] * Z_s ** (p["q"] - 1)) / (p["cY"] + p["kf"])
+    # Cascade number: loop gain of the autocatalytic oligomer-fibril loop.
+    #
+    #   R = X_s [k_s k_f + k_e (cY + kf)] / [(cY + kf) cZ]
+    #     = (secondary-nucleation amplification) + (elongation amplification)
+    #
+    # It is the composite that appears in the critical passivation fraction:
+    # theta_c = 1 - 1/R.  Hence R > 1  <=>  the untreated fibril-poor state is
+    # unstable, and R < 1  <=>  clearance dominates and no passivation is
+    # needed.  (An earlier version used ks*Zs**(q-1) in the numerator, which
+    # omits one factor of Xs and overestimates R by 27% at q = 1.)
+    R = (X_s * (p["ks"] * p["kf"] + p["ke"] * (p["cY"] + p["kf"]))
+         ) / ((p["cY"] + p["kf"]) * p["cZ"])
     return {
         "rho": rho, "sigma": sigma, "eps": eps, "gamma": gamma, "phi": phi,
         "zeta": zeta, "kappa": kappa, "lambda": lam, "K": K, "H": p["hY"],
