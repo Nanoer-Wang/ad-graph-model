@@ -527,7 +527,7 @@ def fig8_identifiability(data_dir: Path, outdir: Path) -> list:
     target = pd.read_csv(data_dir / "synthetic_target.csv")
     traj = pd.read_csv(data_dir / "fit_trajectory.csv")
     band = pd.read_csv(data_dir / "fit_prediction_band.csv")
-    ci = pd.read_csv(data_dir / "profile_likelihood_ci.csv")
+    ci = pd.read_csv(data_dir / "local_gaussian_intervals.csv")
     corr = pd.read_csv(data_dir / "parameter_correlation.csv", index_col=0)
     fit_json = pd.read_json(data_dir / "fit_result.json")
 
@@ -595,8 +595,8 @@ def fig8_identifiability(data_dir: Path, outdir: Path) -> list:
     axC.set_yticklabels(ci["parameter"], fontsize=9)
     axC.set_xscale("log")
     axC.set_xlabel("Parameter value (log scale)")
-    axC.set_title("Profile-likelihood 95% intervals", fontsize=10.5)
-    handles = [Line2D([], [], color=C["X"], lw=2.6, label="95% CI"),
+    axC.set_title("Local Gaussian uncertainty (descriptive)", fontsize=10.5)
+    handles = [Line2D([], [], color=C["X"], lw=2.6, label="local interval"),
                Line2D([], [], marker="o", color="none", markerfacecolor=C["dark"],
                       markersize=6, label="best fit"),
                Line2D([], [], marker="|", color=C["a"], markersize=10,
@@ -621,7 +621,7 @@ def fig8_identifiability(data_dir: Path, outdir: Path) -> list:
     cb.set_label("correlation", fontsize=8)
     cb.ax.tick_params(labelsize=7)
     axD.grid(False)
-    axD.set_title("Structural identifiability (parameter correlations)",
+    axD.set_title("Local parameter correlations",
                   fontsize=10.5)
     panel_label(axD, "D")
 

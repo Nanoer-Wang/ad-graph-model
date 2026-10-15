@@ -1,153 +1,48 @@
-# ad-graph-model
+# Amyloid interface passivation model
 
-Continuous, network-resolved model of amyloid-cascade progression with an
-explicit, passivatable fibril interface — code and analysis pipeline for the
-manuscript
+This repository accompanies **Fibril interface passivation and clearance reshape bistability in a network model of amyloid associated damage**.
 
-> **Fibril-interface passivation suppresses secondary nucleation and arrests
-> the amyloid cascade: a continuous graph-based model of Alzheimer's disease
-> progression and therapeutic design**
+## Reviewed revision (15 October 2026)
 
-## Model
+- `paper_v3/Manuscript_Revised.pdf`: visually checked manuscript.
+- `paper_v3/Manuscript_Revised.docx`: editable text; display equations are high-resolution images. Word pagination has not been visually validated because its renderer was unavailable.
+- `paper_v3/Revision_and_Submission_Notes.pdf`: Chinese revision and journal memo.
+- `manuscript/final_draft.md`: assembled source; `revised_body.md` is the reviewed authoring source.
+- `manuscript/references.bib`, `reference_audit.json`, `references_verified.json`: bibliography and Crossref/PubMed verification records.
+- `results_v3/data`: figure inputs, verified folds and matched-dose controls.
+- `results_v3/figures`: vector PDF figures; Figs. 1, 4, 6 and S1 additionally include SVG.
 
-Each brain region (node of a weighted graph) carries six state variables:
+The original `results_v2/data` are retained as inputs and for provenance. Legacy `profile_likelihood_ci.csv` is excluded from the revised manuscript: the old rerun script held nuisance parameters at reference values. The corrected rerun API now retains all six fitted parameters, but this revision makes no validated profile-likelihood or coverage claim.
 
-| Symbol | Meaning |
-|---|---|
-| `X` | Aβ monomer burden |
-| `Y` | toxic-oligomer burden |
-| `Z` | fibril burden |
-| `P` | passivator concentration |
-| `th` | passivated-interface fraction θ ∈ [0, 1] |
-| `a` | neuronal damage a ∈ [0, 1] |
+## Model and interpretation
 
-Dynamics (per node `v`):
+Each region carries monomer, oligomer and fibril burdens, free passivator concentration, interface occupancy and a reversible damage index. Free-interface activity suppresses both secondary nucleation and elongation. These are phenomenological burdens; secondary nucleation has no matching monomer sink, so total peptide mass is not stoichiometrically conserved. Row-normalized mixing preserves the strength-weighted sum on undirected raw graphs, not the arithmetic sum. Damage spreads from more damaged neighbours via the positive part of their damage difference.
 
-```
-dX/dt = λ0(1−a)(1+βa) − cX·X − kn·X^m − ke·X·Z·(1−θ) + DX·(LX)_v
-dY/dt = kn·X^m + ks·X·Z^q·(1−θ) − (cY+kf)·Y            + DY·(LY)_v
-dZ/dt = kf·Y + ke·X·Z·(1−θ) − cZ·Z
-dP/dt = uP − cP·P
-dθ/dt = kon·P·(1−θ) − koff·θ
-da/dt = ηY·Y^hY/(KY^hY+Y^hY)·(1−a) + ηN·(Wa)_v − δa·a
-```
+For the reference q=1 model, analytic fast-variable elimination resolves the entire physical damage interval. The node folds are 0.928210 and 0.990198; the frozen-monomer threshold 0.547 is a reduced-system comparator, not an exact full-model treatment threshold. Two stable equilibria coexist between the folds. At occupancy 0.95, long integration reaches damage 0.0202 or 0.4499 depending on initial state.
 
-Key mechanism: **both** surface-catalysed processes (secondary nucleation and
-elongation) are multiplied by the free-interface fraction (1−θ), so a
-passivator occupying fibril interfaces reduces the aggregation efficiency.
-Binding is Langmuir-type with KD = koff/kon. Linear stability of the
-oligomer–fibril subsystem yields the analytic critical passivation fraction
+The combination grid changes oligomer clearance and passivator infusion only; the treatment-window/Table 2 combination also enhances fibril clearance. Exact matched controls give mean Bliss excess 0.1529 and 90% positive points at tolerance 1e-6. Baseline-clearance points have zero excess within solver accuracy. Neither simulated synergy nor a low endpoint at time 200 establishes clinical efficacy or asymptotic network arrest.
 
-θc = 1 − (cY + kf)·cZ / { Xs·[ks·kf + ke·(cY + kf)] },  Xs = λ0/cX
+## Reproduction
 
-Three network families are supported: a 2-D cortical sheet (20×20), a
-Watts–Strogatz small-world network (68 nodes), and a 68-region surrogate
-structural connectome (Desikan-like labels, exponential distance rule,
-hub reinforcement, spatial rewiring; density 0.215, clustering 0.54,
-path length 2.13).
+Install Python dependencies with `python -m pip install -r requirements.txt`. The recorded package versions are in `requirements-revision-lock.txt`. Simulation code works independently of the document tools. Current document builders use Cambria and SimSun fonts from Windows.
 
-## Repository layout
+Fast rebuild from the supplied data:
 
-```
-src/ad_graph_model/     model, simulation, analysis and figure code
-  model.py              ODE right-hand side, passivation mechanism
-  graph.py              network construction (sheet / small-world / connectome)
-  simulate.py           LSODA integration, intervention schedules
-  analysis.py           outcome metrics
-  bifurcation.py        steady states, saddle-node folds, pseudo-potential
-  sensitivity.py        Latin hypercube sampling + PRCC
-  fitting.py            synthetic-benchmark fitting, profile-likelihood CIs
-  nondim.py             dimensionless groups and reference scales
-  experiments.py        the eight experiments behind the manuscript
-  figures_core.py       Figures 1–4 renderers
-  figures_therapy.py    Figures 5–8 renderers
-configs/                locked reference configuration
-run_pipeline.py         runs all experiments (writes results_v2/data)
-scan_long_horizon.py    long-horizon (t = 200) dose / window / grid scans
-scan_rapid_monotherapy.py  rapid-infusion monotherapy scan (t = 0 onset)
-regen_potentials.py     rebuilds the quasi-steady-state pseudo-potentials
-make_figures.py         renders all figures (reads results_v2/data)
-render_equations.py     renders the manuscript equations to PNG
-results_v2/             experiment data + figures (created by the pipeline)
+```text
+python reproduce_revision.py
+python -m unittest discover -s tests -v
 ```
 
-## Installation
+Recompute the affected numerical checks and exact single-agent controls as well:
 
-```bash
-pip install -r requirements.txt
+```text
+python reproduce_revision.py --recompute
 ```
 
-Python ≥ 3.10 with numpy, scipy, pandas, matplotlib. No compiled extensions.
+This uses the archived original experiment data rather than rerunning the entire original fitting and 400-sample sensitivity ensemble. `run_pipeline.py` remains the original full-experiment driver. New reference checks can be refreshed with `python verify_references.py`; the build itself uses the local verified cache and needs no network access.
 
-## Reproducing the paper
+`publish_revision.py` defaults to a read-only upload plan. Only `--publish` updates the repository, as a verified fast-forward commit. It never uploads `.env` or credentials and preserves unselected remote paths. The existing nested checkout and its staged changes are not reset or committed by this workflow.
 
-```bash
-# 1. run all eight experiments (~45 min on a laptop; writes results_v2/data)
-python run_pipeline.py --outdir results_v2 --n-sens 400
+## Evidence limits
 
-# 2. long-horizon scans: dose-response, therapeutic window and the
-#    combination grid extended to t = 200 (~25 min; adds *_long.csv)
-python scan_long_horizon.py
-
-# 2b. rapid-infusion monotherapy scan at t = 0 onset (~4 min)
-python scan_rapid_monotherapy.py
-
-# 3. render all figures (writes results_v2/figures, 600-dpi PNG + PDF)
-python make_figures.py
-
-# 4. render the manuscript equations (writes results_v2/equations)
-python render_equations.py
-```
-
-All random procedures use fixed seeds; the pipeline is deterministic and
-reproduces every figure and table from the reference configuration
-(`configs/v2_baseline.json`) with the commands above.
-
-> **Why the long horizon matters.** A finite observation horizon conflates
-> genuine arrest with critical slowing down. Evaluated at t = 40 the
-> dose–response looks sharply sigmoidal (EC50 θ* ≈ 0.77, Hill 19); extended
-> to t = 200 the same runs show that intermediate doses merely delay the
-> cascade, and the durable outcome is graded (0.90 → 0.21). Steps 2 and 2b
-> produce the data behind Sections 4.4–4.5 and Figures 5D, 6A–D.
-
-### Experiments
-
-| # | Experiment | Key outputs |
-|---|---|---|
-| 1 | Baseline + topology robustness | `baseline_*`, `topology_*` |
-| 2 | Intervention strategies | `strategy_*` |
-| 3 | Passivation dose–response | `dose_response*.csv`, `dose_kinetics.csv` |
-| 4 | Therapeutic window + combination | `treatment_window.csv`, `combination_grid.csv`, `clearance_sweep.csv` |
-| 5 | Global sensitivity (LHS + PRCC) | `prcc_table.csv`, `lhs_samples.csv`, `lhs_ensemble.csv` |
-| 6 | Parameter identifiability | `fit_result.json`, `profile_likelihood_ci.csv`, `parameter_correlation.csv` |
-| 7 | Bistability and thresholds | `bifurcation_theta.csv`, `critical_curve.csv`, `potential_*.csv` |
-| 8 | Spatial propagation | `spatial_region_time.csv`, `spatial_onsets.csv`, `spatial_strength_damage.csv` |
-
-### Long-horizon (durable-outcome) scans
-
-| Script | Key outputs | Manuscript |
-|---|---|---|
-| `scan_long_horizon.py` | `dose_response_long.csv`, `treatment_window_long.csv`, `combination_grid_long.csv`, `clearance_sweep_long.csv`, `window_trajectory_long_t*.csv`, `strategy_metrics_long.json` | §4.4–4.5, Table 2, Fig. 5D, 6A–D |
-| `scan_rapid_monotherapy.py` | `monotherapy_rapid_t0.csv` | §4.4 (uP ≳ 0.2 requirement) |
-
-Key durable numbers (t = 200, intervention at t = 8 unless stated):
-untreated 0.912; passivation alone 0.663; clearance alone 0.725; nucleation
-inhibition 0.911; propagation suppression 0.912; **combination 0.093**.
-Monotherapy at t = 0 onset: uP = 0.1 → 0.209, **uP = 0.2 → 0.093**,
-uP = 0.5 → 0.038 (no monotherapy dose works from a t = 8 onset).
-
-## Quick start (single simulation)
-
-```python
-import json
-from ad_graph_model.simulate import run_simulation
-from ad_graph_model.analysis import summary_metrics
-
-cfg = json.load(open("configs/v2_baseline.json"))
-res = run_simulation(cfg)                 # untreated baseline
-print(summary_metrics(res))
-```
-
-## License
-
-MIT License — see `LICENSE`.
+There is no clinical cohort or external kinetic validation. The connectome is a deterministic surrogate. Local Gaussian fitting intervals and the 12 independent marginal parameter draws are descriptive, not validated confidence or prediction intervals. Original results are preserved; revised statements distinguish approximation, numerical evidence and biological interpretation. Author details remain placeholders by request. No specific funding and no competing interests were reported.

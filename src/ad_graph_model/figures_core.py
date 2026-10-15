@@ -311,7 +311,7 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
 
     fig = plt.figure(figsize=(13.4, 9.8))
     gs = fig.add_gridspec(3, 4, height_ratios=[1.0, 1.05, 0.9],
-                          hspace=0.52, wspace=0.34)
+                          hspace=0.60, wspace=0.64)
     snap_axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
     axE = fig.add_subplot(gs[1, :2])
     axF = fig.add_subplot(gs[1, 2])
@@ -355,7 +355,7 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     axE.set_ylabel("region (ordered by onset; every 4th labelled)", fontsize=8.5)
     axE.set_title("Regional damage propagation (ordered by onset)", fontsize=10)
     cb = fig.colorbar(im, ax=axE, fraction=0.03, pad=0.01)
-    cb.set_label("damage $a$", fontsize=8)
+    cb.set_label("", fontsize=8)
     cb.ax.tick_params(labelsize=7)
     panel_label(axE, "E", dx=-0.02, dy=1.12)
 
@@ -392,7 +392,13 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
                 alpha=0.85, edgecolor="white", lw=0.5, zorder=3,
                 label="terminal damage")
     axG.set_xscale("log")
-    axG.set_xlabel("Node strength (un-normalised, log)")
+    axG.set_xlabel("Raw strength (log scale)", fontsize=9)
+    from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
+    raw=hub['strength_raw'].to_numpy()
+    ticks=np.geomspace(raw.min(),raw.max(),3)
+    axG.xaxis.set_major_locator(FixedLocator(ticks))
+    axG.xaxis.set_major_formatter(FuncFormatter(lambda x,pos:f'{x:.2g}'))
+    axG.xaxis.set_minor_locator(NullLocator())
     axG.set_ylabel("Damage at $t=40$", color=C["gray"])
     axG.tick_params(axis="y", colors=C["gray"])
     axG.set_ylim(0.90, 1.0)
@@ -414,7 +420,7 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     else:  # pragma: no cover - legacy fallback
         r = float(np.corrcoef(hub["strength_raw"], hub["a_end"])[0, 1])
         sub = f"endpoint $r$={r:+.2f}"
-    axG.set_title("Hub test: no hub vulnerability", fontsize=10)
+    axG.set_title("Regional association", fontsize=9)
     axG.text(0.03, 0.03, sub, transform=axG.transAxes, fontsize=7.6,
              va="bottom", ha="left", color=C["dark"],
              bbox=dict(fc="white", ec="#CCCCCC", lw=0.6, alpha=0.9, pad=2.5))
@@ -428,7 +434,7 @@ def fig3_spatial(data_dir: Path, outdir: Path) -> list:
     top = onsets.dropna(subset=["onset"]).head(14).iloc[::-1]
     axH.barh(top["region"], top["onset"], color=C["a"], alpha=0.85)
     axH.set_xlabel("Time to reach $a=0.3$")
-    axH.set_title("Earliest-affected regions (Braak-like ordering)", fontsize=10)
+    axH.set_title("Earliest-affected regions under entorhinal seeding", fontsize=10)
     axH.tick_params(axis="y", labelsize=8)
     panel_label(axH, "H")
 

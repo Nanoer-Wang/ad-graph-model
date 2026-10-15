@@ -34,7 +34,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, Image, KeepTogether,  # 
                                 NextPageTemplate, PageBreak, PageTemplate,
                                 Paragraph, Spacer, Table, TableStyle)
 
-PDF = ROOT / "paper_v2" / "Manuscript_Fibril_Interface_Passivation_AD_Model.pdf"
+PDF = ROOT / "paper_v3" / "Manuscript_Revised.pdf"
 TEXT_WIDTH = 16.0 * cm          # A4 minus 2.5 cm margins
 MARGIN = 2.5 * cm
 
@@ -77,8 +77,10 @@ def styles() -> dict[str, ParagraphStyle]:
     s["h3"] = ParagraphStyle("h3", fontName=BODY + "-Bold", fontSize=11,
                              leading=14, alignment=TA_LEFT,
                              spaceBefore=12, spaceAfter=5)
-    s["body"] = ParagraphStyle("body", fontName=BODY, fontSize=10.5,
-                               leading=15.2, alignment=TA_JUSTIFY,
+    s['h2'].keepWithNext = True
+    s['h3'].keepWithNext = True
+    s["body"] = ParagraphStyle("body", fontName=BODY, fontSize=11,
+                               leading=15.5, alignment=TA_LEFT,
                                spaceAfter=0, firstLineIndent=0)
     # Journal convention: consecutive body paragraphs are separated by a
     # first-line indent rather than by vertical space.  The first paragraph
@@ -174,8 +176,8 @@ def image_size(name: str) -> tuple[float, float]:
         dx = dpi[0] if isinstance(dpi, (tuple, list)) else dpi
         dy = dpi[1] if isinstance(dpi, (tuple, list)) else dx
         w_cm, h_cm = w_px / float(dx) * 2.54, h_px / float(dy) * 2.54
-    max_w = 15.0 if name.startswith("eq") else 15.9
-    max_h = 20.0
+    max_w = 14.8 if name.startswith("eq") else 15.9
+    max_h = 19.2
     scale = min(1.0, max_w / w_cm, max_h / h_cm)
     return w_cm * scale, h_cm * scale
 
@@ -193,6 +195,14 @@ def rows_from_html(html_text: str) -> tuple[str, list[list[str]]]:
 
 def col_widths(rows: list[list[str]], avail: float) -> list[float]:
     n = max(len(r) for r in rows)
+    if rows[0][:2] == ['Symbol','Meaning']:
+        return [avail*w for w in [.12,.31,.14,.43]]
+    if rows[0][0] == 'Strategy':
+        return [avail*w for w in [.36,.12,.16,.18,.18]]
+    if rows[0][0] == 'Rank':
+        return [avail*w for w in [.07,.50,.18,.25]]
+    if rows[0][0] == 'Parameter' and n == 5:
+        return [avail*w for w in [.16,.23,.19,.19,.23]]
     weight = [max((len(r[i]) if i < len(r) else 0) for r in rows) + 2
               for i in range(n)]
     total = sum(weight)
@@ -238,9 +248,13 @@ def build_flow(title, cover, blocks, st):
     flow.append(PageBreak())
 
     in_abstract = False
+    equation_number = 0
+    main_equations = []
     pending_img: str | None = None
     for i, (kind, payload) in enumerate(blocks):
         if kind == "h2":
+            if payload == 'Supplementary material':
+                flow.append(PageBreak())
             if in_abstract:
                 in_abstract = False
             if re.match(r"^Abstract", payload, re.I):
@@ -275,9 +289,16 @@ def build_flow(title, cover, blocks, st):
             m = re.search(r'src="images/([^"]+)"', payload)
             if m:
                 w, h = image_size(m.group(1))
-                flow.append(Image(str(IMG_DIR / m.group(1)),
-                                  width=w * cm, height=h * cm,
-                                  hAlign="CENTER"))
+                equation_number += 1
+                equation = Image(str(IMG_DIR / m.group(1)),width=w*cm,height=h*cm,hAlign="CENTER")
+                row=Table([[equation,Paragraph(f'({equation_number})',st['body'])]],colWidths=[15.0*cm,1*cm])
+                row.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'MIDDLE'),('ALIGN',(0,0),(0,0),'CENTER'),('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),8)]))
+                if equation_number <= 6:
+                    main_equations.append(row)
+                    if equation_number == 6:
+                        flow.append(KeepTogether(main_equations))
+                else:
+                    flow.append(row)
             continue
 
         if kind == "keywords":

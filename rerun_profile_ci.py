@@ -71,8 +71,11 @@ def main() -> None:
         sub["cov"] = np.full((1, 1), np.nan)
         b1 = {name: bounds[name]}
         t0 = time.time()
-        ci = profile_likelihood_ci(cfg, sub, b1, target,
-                                   n_bisect=args.n_bisect)
+        # Always pass the complete fitted vector and bounds so that every
+        # nuisance parameter is reoptimized. Slicing to one parameter makes
+        # a conditional scan at reference nuisance values, not a profile.
+        ci = profile_likelihood_ci(cfg, fit, bounds, target,
+                                   n_bisect=args.n_bisect, profile_names=[name])
         row = ci.iloc[0]
         table.loc[name, ["best", "ci_lo", "ci_hi", "sd_linear"]] = [
             row["best"], row["ci_lo"], row["ci_hi"], row["sd_linear"]]

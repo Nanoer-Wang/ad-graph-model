@@ -17,7 +17,7 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SRC = ROOT / "output" / "ad_passivation_paper" / "stage1" / "final_draft.md"
+SRC = ROOT / "manuscript" / "final_draft.md"
 OUT_DIR = ROOT / "output" / "ad_passivation_paper" / "stage2"
 OUT_HTML = OUT_DIR / "formatted-fibril-interface-passivation.html"
 
@@ -29,7 +29,17 @@ def inline(text: str) -> str:
     s = html.escape(text, quote=False)
     s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s, flags=re.S)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
-    s = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", s)
+    s = re.sub(r"(?<![\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?!\w)", r"<em>\1</em>", s)
+    symbols={'cX':('c','X'),'cY':('c','Y'),'cZ':('c','Z'),'cP':('c','P'),
+             'kf':('k','f'),'ks':('k','s'),'ke':('k','e'),'kn':('k','n'),
+             'Xs':('X','s'),'Ys':('Y','s'),'Zs':('Z','s'),'uP':('u','P'),
+             'KD':('K','D'),'KY':('K','Y'),'DX':('D','X'),'DY':('D','Y'),
+             'ηN':('η','N'),'ηY':('η','Y'),'θc':('θ','c'),'λ0':('λ','0'),
+             'k_on':('k','on'),'k_off':('k','off')}
+    for token,(base,sub) in symbols.items():
+        s=re.sub(r'(?<!\w)'+re.escape(token)+r'(?!\w)',
+                 '<i>'+base+'</i><sub>'+sub+'</sub>',s)
+    s=re.sub(r'(?<=[A-Za-zθ])\*',r'<sup>*</sup>',s)
     return s
 
 
@@ -165,7 +175,7 @@ def parse(md: str) -> tuple[str, list[str], list[tuple[str, str]]]:
             continue
 
         # figure / table captions
-        m = re.match(r"^\*\*(Figure|Table)\s+(\d+)\.\*\*\s*(.*)$", s)
+        m = re.match(r"^\*\*(Figure|Table)\s+(S?\d+)\.\*\*\s*(.*)$", s)
         if m:
             flush_para()
             flush_table()

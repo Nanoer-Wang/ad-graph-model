@@ -9,7 +9,7 @@ State variables per network node v:
     th_v fraction of fibril interfaces occupied by passivator (0 = free)
     a_v  neuronal damage in [0, 1]
 
-Dimensional dynamics (well-mixed node):
+Reference dynamics in model units (well-mixed node):
 
     dX/dt  = lam (1-a)(1+beta a) - cX X - kn X^m - ke X Z (1-th)
              + DX * Lap(X)
@@ -54,14 +54,19 @@ def hill(y, K: float, h: float):
 
 
 def neighbor_damage(a: np.ndarray, W: np.ndarray) -> np.ndarray:
-    """Nonlocal damage transmission: influx from healthier neighbours."""
+    """Damage transmission from more damaged neighbours (a_u > a_v)."""
     diff = a[None, :] - a[:, None]
     relu = np.maximum(diff, 0.0)
     return (W * relu).sum(axis=1)
 
 
 def diffusion(x: np.ndarray, W: np.ndarray) -> np.ndarray:
-    """Conservative network transport: weighted neighbour mean minus self."""
+    """Row-normalized mixing, W x - x.
+
+    Preserves constants and, for connected undirected raw weights, the
+    strength-weighted sum. The unweighted sum is conserved only when W
+    is doubly stochastic.
+    """
     return W @ x - x
 
 

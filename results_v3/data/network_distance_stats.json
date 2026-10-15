@@ -1,0 +1,139 @@
+{
+ "seed_regions": [
+  "L-entorhinal",
+  "R-entorhinal"
+ ],
+ "n_regions": 68,
+ "graph_stats_unweighted": {
+  "n_nodes": 68.0,
+  "mean_degree": 14.411764705882353,
+  "density": 0.2151009657594381,
+  "mean_clustering": 0.5351138037145872,
+  "path_length": 2.1286215978928884
+ },
+ "hop_vs_onset": {
+  "n": 68,
+  "pearson_r": 0.8125299944524363,
+  "pearson_p": 4.0514965148983504e-17,
+  "spearman_r": 0.7724400770293708,
+  "spearman_p": 1.2174813884834027e-14
+ },
+ "hop_vs_a_end": {
+  "n": 68,
+  "pearson_r": 0.1577946201377765,
+  "pearson_p": 0.19873915552703786,
+  "spearman_r": -0.17835518151391855,
+  "spearman_p": 0.14561858806243527
+ },
+ "degree_vs_onset": {
+  "n": 68,
+  "pearson_r": 0.30197279276523803,
+  "pearson_p": 0.012325413435741438,
+  "spearman_r": 0.33253713207717595,
+  "spearman_p": 0.005594365736146959
+ },
+ "degree_vs_a_end": {
+  "n": 68,
+  "pearson_r": 0.018845068940087032,
+  "pearson_p": 0.8787667010923075,
+  "spearman_r": -0.07746060022145289,
+  "spearman_p": 0.53009665936303
+ },
+ "strength_raw_vs_onset": {
+  "n": 68,
+  "pearson_r": 0.3842779520826015,
+  "pearson_p": 0.0012152448686599433,
+  "spearman_r": 0.4359277779898461,
+  "spearman_p": 0.00020256386599920557
+ },
+ "strength_raw_vs_a_end": {
+  "n": 68,
+  "pearson_r": 0.015965327258866256,
+  "pearson_p": 0.8971829173915886,
+  "spearman_r": -0.08077260755048288,
+  "spearman_p": 0.5126027411107676
+ },
+ "eigenvector_vs_onset": {
+  "n": 68,
+  "pearson_r": 0.36850745889927927,
+  "pearson_p": 0.0019877764707058234,
+  "spearman_r": 0.45276176661449785,
+  "spearman_p": 0.00010589234872348407
+ },
+ "eigenvector_vs_a_end": {
+  "n": 68,
+  "pearson_r": -0.08155784234752003,
+  "pearson_p": 0.508498717095617,
+  "spearman_r": -0.20357292819788522,
+  "spearman_p": 0.09589914718211608
+ },
+ "log_strength_vs_a_end": {
+  "n": 68,
+  "pearson_r": 0.14093921670195783,
+  "pearson_p": 0.2516294858413103,
+  "spearman_r": -0.08077260755048288,
+  "spearman_p": 0.5126027411107676
+ },
+ "degree_vs_onset_given_hop": {
+  "n": 68,
+  "partial_r": 0.3969571468683317,
+  "partial_p": 0.0008814302552314653
+ },
+ "degree_vs_a_end_given_hop": {
+  "n": 68,
+  "partial_r": 0.0050469019970585585,
+  "partial_p": 0.9676678061323942
+ },
+ "strength_raw_vs_onset_given_hop": {
+  "n": 68,
+  "partial_r": 0.37645957745219755,
+  "partial_p": 0.0016903870702457953
+ },
+ "strength_raw_vs_a_end_given_hop": {
+  "n": 68,
+  "partial_r": -0.017588099093529205,
+  "partial_p": 0.8876594818165053
+ },
+ "eigenvector_vs_onset_given_hop": {
+  "n": 68,
+  "partial_r": 0.2997454467145317,
+  "partial_p": 0.01372814698507583
+ },
+ "eigenvector_vs_a_end_given_hop": {
+  "n": 68,
+  "partial_r": -0.12557878521626498,
+  "partial_p": 0.31126180800169584
+ },
+ "hop_vs_onset_given_strength": {
+  "n": 68,
+  "partial_r": 0.8300999381969739,
+  "partial_p": 3.832878327636345e-18
+ },
+ "euclid_vs_onset": {
+  "n": 68,
+  "pearson_r": 0.7566200849478707,
+  "pearson_p": 8.48713687737731e-14,
+  "spearman_r": 0.6616004961613876,
+  "spearman_p": 8.140046470867071e-10
+ },
+ "hop_vs_onset_given_euclid": {
+  "n": 68,
+  "partial_r": 0.6008856901922599,
+  "partial_p": 7.613386186958549e-08
+ },
+ "strength_vs_onset_given_euclid": {
+  "n": 68,
+  "partial_r": 0.22705450490118254,
+  "partial_p": 0.06463717035827847
+ },
+ "strength_vs_onset_given_hop_euclid": {
+  "n": 68,
+  "partial_r": 0.3051492476266303,
+  "partial_p": 0.01272366665018448
+ },
+ "degree_vs_onset_given_hop_euclid": {
+  "n": 68,
+  "partial_r": 0.3590727764057687,
+  "partial_p": 0.003068314035850058
+ }
+}

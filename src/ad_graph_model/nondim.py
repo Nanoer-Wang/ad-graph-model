@@ -2,8 +2,8 @@
 
 Scales (chosen once, used throughout the manuscript):
 
-    X_s = lambda0 / cX      healthy monomer steady state
-    Y_s = Z_s = X_s         mass-consistent concentration scale
+    X_s = lambda0 / cX      reference balance with aggregation omitted
+    Y_s = Z_s = X_s         shared burden scale (not a mass-conservation law)
     tau = cX * t            fast clearance time scale
 
 Dimensionless groups reported by :func:`dimensionless_groups`.

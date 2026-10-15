@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-plt.rcParams["mathtext.fontset"] = "dejavusans"
+plt.rcParams["mathtext.fontset"] = "stix"
 
 EQUATIONS = {
     "eq_monomer": r"$\dfrac{dX_v}{dt}=\lambda_0(1-a_v)(1+\beta a_v)-c_X X_v-k_n X_v^{m}-k_e X_v Z_v(1-\theta_v)+D_X\sum_{u}L_{vu}X_u$",
@@ -39,11 +39,31 @@ EQUATIONS = {
 }
 
 
-def render_all(outdir: Path, fontsize: float = 15.0, dpi: int = 300) -> list:
+REVISED_EQUATIONS = {
+    'eq_monomer': r'$\frac{dX_v}{dt}=\lambda_0(1-a_v)(1+\beta a_v)-c_XX_v-k_nX_v^m$'+'\n'+r'$\qquad{}-k_eX_vZ_v(1-\theta_v)+D_X\sum_uL_{vu}X_u$',
+    'eq_oligomer': r'$\frac{dY_v}{dt}=k_nX_v^m+k_sX_vZ_v^q(1-\theta_v)$'+'\n'+r'$\qquad{}-(c_Y+k_f)Y_v+D_Y\sum_uL_{vu}Y_u$',
+    'eq_fibril': r'$\frac{dZ_v}{dt}=k_fY_v+k_eX_vZ_v(1-\theta_v)-c_ZZ_v$',
+    'eq_passivator': r'$\frac{dP_v}{dt}=u_P-c_PP_v$',
+    'eq_occupancy': r'$\frac{d\theta_v}{dt}=k_{\mathrm{on}}P_v(1-\theta_v)-k_{\mathrm{off}}\theta_v$',
+    'eq_damage': r'$\frac{da_v}{dt}=\eta_Y\mathcal{H}(Y_v;K_Y,h_Y)(1-a_v)-\delta_a a_v$'+'\n'+r'$\qquad{}+\eta_N\sum_uW_{vu}[a_u-a_v]_+$',
+    'eq_hill': r'$\mathcal{H}(Y;K_Y,h_Y)=\frac{Y^{h_Y}}{K_Y^{h_Y}+Y^{h_Y}},\qquad [z]_+=\max(z,0)$',
+    'eq_efficiency': r'$\eta_{\mathrm{agg}}(t)=1-\frac{1}{N}\sum_v\theta_v(t)$',
+    'eq_langmuir': r'$\theta^*=\frac{P}{K_D+P},\qquad K_D=\frac{k_{\mathrm{off}}}{k_{\mathrm{on}}}$',
+    'eq_linear': r'$\dot{Y}=k_sX_s(1-\theta)Z-(c_Y+k_f)Y$'+'\n'+r'$\dot{Z}=k_fY+[k_eX_s(1-\theta)-c_Z]Z$',
+    'eq_cascade_number': r'$\mathcal{R}=\frac{X_s[k_sk_f+k_e(c_Y+k_f)]}{(c_Y+k_f)c_Z}$',
+    'eq_theta_c': r'$\theta_c=1-\frac{1}{\mathcal{R}}=1-\frac{(c_Y+k_f)c_Z}{X_s[k_sk_f+k_e(c_Y+k_f)]}$',
+    'eq_fast': r'$Z(X)=\frac{k_fk_nX^m}{Cc_Z-bX(Ck_e+k_sk_f)}$'+'\n'+r'$Y(X)=\frac{(c_Z-k_eXb)Z(X)}{k_f}$',
+    'eq_potential': r'$f(a;\theta)=\eta_Y\mathcal{H}(Y(a;\theta))(1-a)-\delta_a a$'+'\n'+r'$\Phi(a;\theta)=-\int_0^a f(s;\theta)\,ds$',
+    'eq_bliss': r'$E_{\mathrm{Bliss}}=E_P+E_C-E_PE_C$',
+}
+
+
+def render_all(outdir: Path, fontsize: float = 11.5, dpi: int = 600) -> list:
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     paths = []
-    for name, tex in EQUATIONS.items():
+    for name, tex in REVISED_EQUATIONS.items():
+        tex = tex.replace(r'\frac', r'\dfrac')
         fig = plt.figure(figsize=(0.1, 0.1))
         t = fig.text(0, 0, tex, fontsize=fontsize, color="#1A1A1A")
         fig.canvas.draw()

@@ -1,0 +1,66 @@
+{
+  "lower_fold": {
+    "a": 0.04547582401570456,
+    "theta": 0.9282103682256517,
+    "residual": 2.981555974335137e-14,
+    "eigenvalues": [
+      [
+        -0.3178962900897234,
+        0.04305440031894298
+      ],
+      [
+        -0.3178962900897234,
+        -0.04305440031894298
+      ],
+      [
+        5.8707680256730574e-08,
+        0.0
+      ],
+      [
+        -0.09091273508000579,
+        0.0
+      ]
+    ]
+  },
+  "upper_fold": {
+    "a": 0.27181940671989235,
+    "theta": 0.9901983187012304,
+    "residual": 4.336808689942017e-14,
+    "eigenvalues": [
+      [
+        -0.3137155806381736,
+        0.06195968908313779
+      ],
+      [
+        -0.3137155806381736,
+        -0.06195968908313779
+      ],
+      [
+        4.052386242067381e-08,
+        0.0
+      ],
+      [
+        -0.10960759425659486,
+        0.0
+      ]
+    ]
+  },
+  "hysteresis_width": 0.0619879504755787,
+  "qss_roots": {
+    "none": [
+      0.9123120350216464
+    ],
+    "partial": [
+      0.7658966048869215
+    ],
+    "strong": [
+      0.020154728828596844,
+      0.10488658230405101,
+      0.4498692166732087
+    ]
+  },
+  "max_fast_equilibrium_residual": 2.990202530028796e-11,
+  "max_fast_eigenvalue": -0.003950399508005045,
+  "excluded_legacy_intervals": "profile_likelihood_ci.csv: rerun script fixed nuisance parameters at reference values; excluded from revised manuscript",
+  "local_intervals": "Log-Gaussian delta-method intervals from the existing scaled least-squares covariance, descriptive only; no coverage claim"
+}

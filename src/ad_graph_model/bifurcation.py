@@ -127,6 +127,8 @@ def _slave_XYZ(p: Dict[str, float], P: float, a: float) -> np.ndarray:
     point, contractive near the healthy state); X solves the monotone
     monomer balance by bisection.
     """
+    if abs(p["q"] - 1.0) < 1e-12:
+        return fast_equilibrium_q1(a, p, P)
     th = P / (p["koff"] / p["kon"] + P)
     act = 1.0 - th
     prod = p["lambda0"] * (1.0 - a) * (1.0 + p["beta"] * a)
@@ -319,8 +321,44 @@ def _interp_branch(branch, v):
 # --------------------------------------------------------------------------
 # QSS reduction along the damage coordinate
 # --------------------------------------------------------------------------
+def fast_equilibrium_q1(a: float, p: Dict[str, float], P: float) -> np.ndarray:
+    """Positive fast equilibrium for q=1, including monomer depletion.
+
+    Eliminate Y and Z, then bracket the strictly decreasing monomer balance
+    below its autocatalytic pole. Failed unconstrained root searches must
+    never be interpreted as nonexistence of a slow manifold.
+    """
+    if abs(p["q"] - 1.0) > 1e-12:
+        raise ValueError("Analytic fast elimination requires q=1")
+    prod = p["lambda0"] * (1-a) * (1+p["beta"]*a)
+    if prod <= 0:
+        return np.zeros(3)
+    act = 1.0 - P / (p["koff"] / p["kon"] + P)
+    cy = p["cY"] + p["kf"]
+    gain = act * (cy*p["ke"] + p["ks"]*p["kf"])
+    pole = cy*p["cZ"] / gain if gain > 0 else np.inf
+
+    def yz(x):
+        z = p["kf"]*p["kn"]*x**p["m"] / (cy*p["cZ"]-gain*x)
+        y = (p["cZ"]-p["ke"]*x*act)*z/p["kf"]
+        return y, z
+
+    def balance(x):
+        _, z = yz(x)
+        return prod-p["cX"]*x-p["kn"]*x**p["m"]-p["ke"]*x*z*act
+
+    hi = min(prod/p["cX"], pole*(1-1e-12))
+    x = brentq(balance, 0.0, hi, xtol=1e-14, rtol=1e-14)
+    y, z = yz(x)
+    return np.array([x, y, z])
+
+
 def qss_damage_rate(a: float, p: Dict[str, float], P: float) -> float:
     """f(a) = da/dt with (X,Y,Z,th) slaved to a (th from sustained P)."""
+    if abs(p["q"] - 1.0) < 1e-12:
+        _, Y, _ = fast_equilibrium_q1(a, p, P)
+        tox = hill(Y, p["KY"], p["hY"])
+        return float(p["etaY"]*tox*(1-a)-p["deltaA"]*a)
     th = P / (p["koff"] / p["kon"] + P)
     act = 1.0 - th
 
@@ -383,10 +421,9 @@ def qss_branches(p: Dict[str, float], P: float = 0.0,
 def pseudo_potential(a_grid: np.ndarray, f: np.ndarray) -> np.ndarray:
     """Phi(a) = -int f da (wells = stable fixed points).
 
-    NaN entries of ``f`` mark intervals where the quasi-steady reduction
-    admits no positive equilibrium (the fast aggregation subsystem is in
-    runaway there); the potential is integrated independently on each
-    contiguous valid segment and left undefined across the gaps.
+    Nonfinite entries mark unresolved numerical evaluations, not proof of
+    nonexistence. Integrate valid segments independently without bridging
+    missing values. For q=1 the analytic elimination resolves the full range.
     """
     a_grid = np.asarray(a_grid, dtype=float)
     f = np.asarray(f, dtype=float)

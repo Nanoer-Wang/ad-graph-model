@@ -13,12 +13,13 @@ from ad_graph_model.figures_core import (fig1_schematic, fig2_baseline,
 from ad_graph_model.figures_therapy import (fig5_dose, fig6_therapy,
                                             fig7_sensitivity,
                                             fig8_identifiability)
+from ad_graph_model.figures_revision import fig1_schematic, fig4_bifurcation, fig5_dose, fig6_therapy
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Render all figures.")
-    parser.add_argument("--data", default="results_v2/data")
-    parser.add_argument("--outdir", default="results_v2/figures")
+    parser.add_argument("--data", default="results_v3/data")
+    parser.add_argument("--outdir", default="results_v3/figures")
     parser.add_argument("--only", default=None,
                         help="comma-separated figure numbers, e.g. 1,3,5")
     args = parser.parse_args()

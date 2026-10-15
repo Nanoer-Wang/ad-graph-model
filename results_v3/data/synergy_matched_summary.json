@@ -1,0 +1,28 @@
+{
+  "mean_excess": 0.15286209082059318,
+  "fraction_positive": 0.9,
+  "nearest_grid": {
+    "uP": 0.009501185073181439,
+    "cY": 0.48333333333333334,
+    "passivation_a200": 0.6978119445887365,
+    "clearance_a200": 0.8503618142989127,
+    "E_P": 0.23511678718862605,
+    "E_C": 0.06790435214404633,
+    "bliss": 0.28705568622043914,
+    "observed": 0.726779268432906,
+    "excess": 0.4397235822124668
+  },
+  "exact_reference": {
+    "uP": 0.012,
+    "cY": 0.5,
+    "cZ": 0.114,
+    "E_P": 0.2730958508457836,
+    "E_C": 0.07268263435351474,
+    "bliss": 0.3259291593288122,
+    "observed": 0.8277953225198751,
+    "excess": 0.5018661631910628,
+    "a200": 0.15710435115709115
+  },
+  "note": "Grid changes cY and uP only; cZ remains 0.114. Table 2/window combination also changes cZ to 0.20.",
+  "positive_tolerance": 1e-06
+}

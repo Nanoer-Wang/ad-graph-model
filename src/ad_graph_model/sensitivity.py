@@ -68,7 +68,7 @@ def prcc_matrix(X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
     prcc = np.zeros((d, m))
     pval = np.ones((d, m))
-    df = n - 2 - d
+    df = n - 2 - (d - 1)
     if df <= 0:
         raise ValueError("n too small for PRCC with this many parameters")
 

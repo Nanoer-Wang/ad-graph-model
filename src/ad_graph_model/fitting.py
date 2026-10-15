@@ -143,7 +143,8 @@ def profile_likelihood_ci(cfg: dict, fit: dict,
                           target_df: pd.DataFrame, log_half_width: float = 0.8,
                           n_grid: int = 9,
                           inner_max_nfev: int = 6,
-                          n_bisect: int = 8) -> pd.DataFrame:
+                          n_bisect: int = 8,
+                          profile_names: Sequence[str] | None = None) -> pd.DataFrame:
     """True profile-likelihood 95% intervals (chi-square, 1 d.f.).
 
     For each parameter the SSE is scanned in **log space** while **all
@@ -199,9 +200,14 @@ def profile_likelihood_ci(cfg: dict, fit: dict,
         return sse(x)
 
     sse_min = sse(x_log)
-    thr = sse_min * (1.0 + stats.chi2.ppf(0.95, 1) / max(Y_obs.size, 1))
+    # Gaussian likelihood with an unknown common residual scale after
+    # output normalization: N log(SSE/SSE_min) <= chi-square(1).
+    # This is not a known-heteroscedastic-noise likelihood.
+    thr = sse_min * np.exp(stats.chi2.ppf(0.95, 1) / max(Y_obs.size, 1))
     rows = []
     for i, n in enumerate(names):
+        if profile_names is not None and n not in profile_names:
+            continue
         grid = np.clip(x_log[i] + np.linspace(-log_half_width, log_half_width,
                                               n_grid), lo_log[i], hi_log[i])
         prof = np.array([profile_sse(i, g) for g in grid])
