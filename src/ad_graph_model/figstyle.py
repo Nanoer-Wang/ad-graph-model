@@ -1,7 +1,7 @@
 """Publication figure style and shared plotting helpers.
 
 Style targets scientific journals: colour-blind-safe palette (Okabe-Ito),
-spines removed, light grid, bold panel labels, vector PDF + 600 dpi PNG.
+spines removed, light grid, bold panel labels, vector PDF and 900 dpi rasters.
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def setup_style() -> None:
         "xtick.direction": "out",
         "ytick.direction": "out",
         "figure.dpi": 110,
-        "savefig.dpi": 600,
+        "savefig.dpi": 900,
         "savefig.bbox": "tight",
         "savefig.pad_inches": 0.02,
         "pdf.fonttype": 42,
@@ -88,6 +88,15 @@ def save_fig(fig, outbase: Path, formats=("png", "pdf")) -> list:
         p = outbase.with_suffix(f".{fmt}")
         fig.savefig(p, format=fmt)
         paths.append(p)
+        if fmt == "png":
+            # Convert the freshly rendered raster without resampling. RGB LZW
+            # TIFF is lossless, with the same pixels and physical resolution.
+            from PIL import Image
+            tif = outbase.with_suffix('.tif')
+            with Image.open(p) as raster:
+                dpi = raster.info.get('dpi', (plt.rcParams['savefig.dpi'],) * 2)
+                raster.convert('RGB').save(tif, compression='tiff_lzw', dpi=dpi)
+            paths.append(tif)
     plt.close(fig)
     return paths
 

@@ -58,7 +58,7 @@ REVISED_EQUATIONS = {
 }
 
 
-def render_all(outdir: Path, fontsize: float = 11.5, dpi: int = 600) -> list:
+def render_all(outdir: Path, fontsize: float = 11.5, dpi: int = 900) -> list:
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     paths = []

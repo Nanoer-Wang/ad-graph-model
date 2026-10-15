@@ -80,7 +80,7 @@ def styles() -> dict[str, ParagraphStyle]:
     s['h2'].keepWithNext = True
     s['h3'].keepWithNext = True
     s["body"] = ParagraphStyle("body", fontName=BODY, fontSize=11,
-                               leading=15.5, alignment=TA_LEFT,
+                               leading=15.5, alignment=TA_JUSTIFY,
                                spaceAfter=0, firstLineIndent=0)
     # Journal convention: consecutive body paragraphs are separated by a
     # first-line indent rather than by vertical space.  The first paragraph
@@ -110,8 +110,8 @@ def styles() -> dict[str, ParagraphStyle]:
     s["cellhead"] = ParagraphStyle("cellhead", fontName=BODY + "-Bold",
                                    fontSize=8.5, leading=11)
     s["ref"] = ParagraphStyle("ref", fontName=BODY, fontSize=9, leading=12.5,
-                              alignment=TA_LEFT, leftIndent=1.2 * cm,
-                              firstLineIndent=-1.2 * cm, spaceAfter=3)
+                              alignment=TA_LEFT, leftIndent=0.8 * cm,
+                              firstLineIndent=-0.8 * cm, spaceAfter=3)
     return s
 
 
@@ -166,7 +166,7 @@ def image_size(name: str) -> tuple[float, float]:
     """Display size (cm) for an image, honouring its native aspect ratio.
 
     Both dimensions are returned explicitly: reportlab otherwise derives the
-    height itself and, for the 600 dpi figures, can end up with a box taller
+    height itself and, for high-resolution figures, can end up with a box taller
     than the text block (LayoutError).
     """
     from PIL import Image as PILImage
@@ -321,7 +321,7 @@ def build_flow(title, cover, blocks, st):
             items = re.findall(r'<li class="reference-item">(.*?)</li>',
                                payload, re.S)
             for i, it in enumerate(items, 1):
-                flow.append(Paragraph(f"{i}. {rl(it)}", st["ref"]))
+                flow.append(Paragraph(f"[{i}] {rl(it)}", st["ref"]))
             continue
 
         # "p" blocks still carry raw markdown emphasis; every other kind was

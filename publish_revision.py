@@ -35,7 +35,8 @@ def main():
     for name in ['README.md','requirements.txt','requirements-revision-lock.txt','make_figures.py','run_pipeline.py','revision_analysis.py',
                  'revision_bliss.py','verify_references.py','assemble_revision.py','render_equations.py','md_to_html_paper.py',
                  'build_pdf.py','build_manuscript_docx.py','make_revision_notes.py','rerun_profile_ci.py','publish_revision.py','build_docx.py',
-                 'analysis_network_stats.py','reproduce_revision.py','.gitignore']:
+                 'analysis_network_stats.py','reproduce_revision.py','package_submission.py',
+                 'output/ad_passivation_paper/stage1/final_draft.md','.gitignore']:
         p=ROOT/name
         if p.exists():paths.append(p)
     # Original inputs required by the lightweight revised analysis.

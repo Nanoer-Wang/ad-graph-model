@@ -33,10 +33,13 @@ def main():
         style=doc.styles[st];style.font.name='Cambria';style.font.color.rgb=RGBColor(0,0,0)
         style.paragraph_format.widow_control=True
     normal=doc.styles['Normal'];normal.font.size=Pt(11)
+    normal.paragraph_format.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
     normal.paragraph_format.line_spacing=1.2;normal.paragraph_format.space_after=Pt(6)
     doc.styles['Title'].font.size=Pt(17)
     doc.styles['Heading 1'].font.size=Pt(13);doc.styles['Heading 2'].font.size=Pt(11.5)
     doc.styles['Caption'].font.size=Pt(9);doc.styles['Caption'].font.italic=False
+    for st in ['Heading 1','Heading 2']:
+        doc.styles[st].paragraph_format.alignment=WD_ALIGN_PARAGRAPH.LEFT
     title,cover,blocks=parse(SRC.read_text(encoding='utf-8'))
     p=doc.add_paragraph(title,'Title');p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     for text in cover:
@@ -72,6 +75,7 @@ def main():
                 for j,val in enumerate(row):
                     cell=t.cell(i,j);cell.width=Cm(widths[j]/TEXT_WIDTH*16)
                     p=cell.paragraphs[0];p.paragraph_format.space_after=Pt(4);p.paragraph_format.space_before=Pt(4)
+                    p.alignment=WD_ALIGN_PARAGRAPH.LEFT
                     runs(p,val)
                     for r in p.runs:r.font.size=Pt(9);r.bold=i==0
                     if i==0:
@@ -84,8 +88,9 @@ def main():
             t._tbl.tblPr.append(borders)
         elif kind=='refs':
             for i,text in enumerate(re.findall('<li class="reference-item">(.*?)</li>',payload,re.S),1):
-                p=doc.add_paragraph();p.paragraph_format.left_indent=Cm(.7);p.paragraph_format.first_line_indent=Cm(-.7)
-                runs(p,f'{i}. '+text)
+                p=doc.add_paragraph();p.paragraph_format.left_indent=Cm(.8);p.paragraph_format.first_line_indent=Cm(-.8)
+                p.alignment=WD_ALIGN_PARAGRAPH.LEFT
+                runs(p,f'[{i}] '+text)
                 for r in p.runs:r.font.size=Pt(9.5)
         else:
             p=doc.add_paragraph();runs(p,inline(payload) if kind=='p' else payload)

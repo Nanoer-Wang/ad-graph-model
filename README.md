@@ -10,7 +10,9 @@ This repository accompanies **Fibril interface passivation and clearance reshape
 - `manuscript/final_draft.md`: assembled source; `revised_body.md` is the reviewed authoring source.
 - `manuscript/references.bib`, `reference_audit.json`, `references_verified.json`: bibliography and Crossref/PubMed verification records.
 - `results_v3/data`: figure inputs, verified folds and matched-dose controls.
-- `results_v3/figures`: vector PDF figures; Figs. 1, 4, 6 and S1 additionally include SVG.
+- `results_v3/figures`: native 900 dpi PNG and lossless RGB TIFF figures, plus vector PDF; some figures additionally include SVG.
+- The DOCX and PDF body text is justified. Bibliography entries use bracketed numbers `[1]` with hanging indents.
+- `python package_submission.py` assembles the manuscript, nine 900 dpi figures, vector figures, code, archived data and bibliography into `output/Submission_Package_900dpi.zip`, excluding credentials and local checkouts.
 
 The original `results_v2/data` are retained as inputs and for provenance. Legacy `profile_likelihood_ci.csv` is excluded from the revised manuscript: the old rerun script held nuisance parameters at reference values. The corrected rerun API now retains all six fitted parameters, but this revision makes no validated profile-likelihood or coverage claim.
 

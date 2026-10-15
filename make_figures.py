@@ -20,9 +20,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Render all figures.")
     parser.add_argument("--data", default="results_v3/data")
     parser.add_argument("--outdir", default="results_v3/figures")
+    parser.add_argument("--dpi", type=int, default=900,
+                        help="Native raster rendering resolution (default: 900).")
     parser.add_argument("--only", default=None,
                         help="comma-separated figure numbers, e.g. 1,3,5")
     args = parser.parse_args()
+    if args.dpi <= 0:
+        parser.error('--dpi must be positive')
+    import matplotlib.pyplot as plt
+    plt.rcParams['savefig.dpi'] = args.dpi
 
     data = Path(args.data)
     outdir = Path(args.outdir)
